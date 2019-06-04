@@ -17,10 +17,15 @@ class RingoquotesSpider(scrapy.Spider):
         quotes = response.css(".quote")
         for quote in quotes:
             item = FirstscrapyItem()
-            item.text = quote.css(".text::text").extract_first() 
-            item.author = quote.css(".author::text").extract_first()
+            item['text'] = quote.css(".text::text").extract_first() 
+            item['author'] = quote.css(".author::text").extract_first()
             # tag列表
-            item.tags = quote.css(".tags .tag::text").extract()
+            item['tags'] = quote.css(".tags .tag::text").extract()
             # 生成器返回item
             yield item
-        
+        # 下一页url
+        next = response.css('.next a::attr("href")').extract_first()
+        # 构造绝对url
+        next_url = response.urljoin(next)
+        # 构造请求
+        yield scrapy.Request(url=next_url, callback=self.parse)
